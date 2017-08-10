@@ -1,4 +1,3 @@
-# Implement your module commands in this script.
 
 enum CEF_Ext_Device_Direction {
     inbound
