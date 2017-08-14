@@ -1033,34 +1033,31 @@ function New-CEFMessage {
         If ($dvcmac) {$dvcmac = Format-MacAddress -MacAddress $dvcmac -Separator ':' -Case Upper}
         If ($smac) {$smac = Format-MacAddress -MacAddress $smac   -Separator ':' -Case Upper}
 
-        # Build list of parameters used when the cmdlet was called
-        $SpecifiedExtensions = @()
-        $PSCmdlet.MyInvocation.BoundParameters.GetEnumerator() | ForEach-Object {$SpecifiedExtensions += $_.Key}
+        # Loop through the list of specified params
+        ($PSCmdlet.MyInvocation.BoundParameters).Keys | ForEach-Object {
+            # Get a handle for this param's name before we dive into another loop block
+            $i = $_
 
-        # Build list of specified params that are part of the 'CEFExtensionFields' param set
-        ForEach ($p in $SpecifiedExtensions) {
-            # Build list of param sets of which this param is a member
-            $ParamSets = @()
-            ($MyInvocation.MyCommand.Parameters.Item($p)).ParameterSets.GetEnumerator() | ForEach-Object {
-                $ParamSets += $_.Key
-            }
+            # Loop through the param sets of which this specified param is a member
+            (($MyInvocation.MyCommand.Parameters.Item($i)).ParameterSets).Keys | ForEach-Object {
 
-            # If this param is a member of the 'CEFExtensionFields' paramset, add it to the output variable
-            If ($ParamSets -ccontains 'CEFExtensionFields') {
+                # If this param is a member of the 'CEFExtensionFields' param set, add it to the output variable
+                If ($_ -ccontains 'CEFExtensionFields') {
 
-                # Special handling of params of type 'CEF_Ext_Device_Direction'
-                If (($MyInvocation.MyCommand.Parameters.Item($p)).ParameterType -eq [CEF_Ext_Device_Direction]) {
-                    $CEFExtension += (((Get-Variable $p).Name), ((Get-Variable $p).Value -as [int]) -join '=') + ' '
-                }
+                    # Special handling of params of type 'CEF_Ext_Device_Direction'
+                    If (($MyInvocation.MyCommand.Parameters.Item($i)).ParameterType -eq [CEF_Ext_Device_Direction]) {
+                        $CEFExtension += (((Get-Variable $i).Name), ((Get-Variable $i).Value -as [int]) -join '=') + ' '
+                    }
 
-                # Special handling of params of type 'CEF_Ext_Event_Type'
-                ElseIf (($MyInvocation.MyCommand.Parameters.Item($p)).ParameterType -eq [CEF_Ext_Event_Type]) {
-                    $CEFExtension += (((Get-Variable $p).Name), ((Get-Variable $p).Value -as [int]) -join '=') + ' '
-                }
+                    # Special handling of params of type 'CEF_Ext_Event_Type'
+                    ElseIf (($MyInvocation.MyCommand.Parameters.Item($i)).ParameterType -eq [CEF_Ext_Event_Type]) {
+                        $CEFExtension += (((Get-Variable $i).Name), ((Get-Variable $i).Value -as [int]) -join '=') + ' '
+                    }
 
-                # Default handling of CEF extension fields
-                Else {
-                    $CEFExtension += (((Get-Variable $p).Name), ((Get-Variable $p).Value) -join '=') + ' '
+                    # Default handling of CEF extension fields
+                    Else {
+                        $CEFExtension += (((Get-Variable $i).Name), ((Get-Variable $i).Value) -join '=') + ' '
+                    }
                 }
             }
         }
