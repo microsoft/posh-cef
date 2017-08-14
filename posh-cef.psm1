@@ -10,6 +10,7 @@ enum CEF_Ext_Event_Type {
     Correlation
     Action
 }
+
 function Format-MacAddress {
     [CmdletBinding()]
     [OutputType([string])]
