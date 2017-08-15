@@ -55,10 +55,10 @@ function Format-MacAddress {
         }
 
         $Address = $Address -replace (':', '') -replace ('-', '') -replace (' ', '')
-        Write-Verbose "Format-MacAddress: Colon (:), hyphen (-), and space ( ) separators were removed: $MacAddress"
+        Write-Verbose "Format-MacAddress: Colon (:), hyphen (-), and space ( ) separators were removed: $Address"
 
         $Address = @(($Address[0, 1] -join ''), ($Address[2, 3] -join ''), ($Address[4, 5] -join ''), ($Address[6, 7] -join ''), ($Address[8, 9] -join ''), ($Address[10, 11] -join '')) -join $Separator
-        Write-Verbose "Format-MacAddress: Address was reconstructed with specified separator: $MacAddress"
+        Write-Verbose "Format-MacAddress: Address was reconstructed with specified separator: $Address"
 
         $Address
     }
@@ -69,7 +69,7 @@ function Format-MacAddress {
 function New-CEFMessage {
     <#
     .Synopsis
-        Creates a CEF message string (without SYSLOG prefix) that will typically be sent via SYSLOG or written to a file
+        Creates a CEF message string (without a SYSLOG prefix) that will typically be sent via SYSLOG or written to a file
 
     .DESCRIPTION
         Generate a properly formatted CEF message (CEF version 0 as specified by CommonEventFormatv23.pdf) consisting of mandatory CEF header fields and optional CEF extension fields
@@ -1020,7 +1020,6 @@ function New-CEFMessage {
         $flexString2Label
     )
     Begin {
-        # Initialize variables
         [String]$CEFVersion = 'CEF:0'
         Write-Verbose "New-CEFMessage: CEF version being used: $CEFVersion"
     }
@@ -1028,47 +1027,46 @@ function New-CEFMessage {
     Process {
         [String]$CEFExtension = ''
 
-        # Convert MAC addresses to CEF expected format
+        Write-Verbose "New-CEFMessage: Convert MAC addresses to CEF expected format"
         If ($dmac) {$dmac = Format-MacAddress -MacAddress $dmac -Separator ':' -Case Upper}
         If ($dvcmac) {$dvcmac = Format-MacAddress -MacAddress $dvcmac -Separator ':' -Case Upper}
         If ($smac) {$smac = Format-MacAddress -MacAddress $smac   -Separator ':' -Case Upper}
 
-        # Loop through the list of specified params
+        Write-Verbose "New-CEFMessage: Loop through the list of specified params"
         ($PSCmdlet.MyInvocation.BoundParameters).Keys | ForEach-Object {
-            # Get a handle for this param's name before we dive into another loop block
+            Write-Verbose "New-CEFMessage: Get handle for parameter $_ before entering another ForEach-Object loop block"
             $i = $_
 
-            # Loop through the param sets of which this specified param is a member
+            Write-Verbose "New-CEFMessage: Loop through the param sets of which param $_ is a member"
             (($MyInvocation.MyCommand.Parameters.Item($i)).ParameterSets).Keys | ForEach-Object {
 
-                # If this param is a member of the 'CEFExtensionFields' param set, add it to the output variable
+                Write-Verbose "New-CEFMessage: Check if param $i is a member of param set 'CEFExtensionFields'"
                 If ($_ -ccontains 'CEFExtensionFields') {
 
-                    # Special handling of params of type 'CEF_Ext_Device_Direction'
+                    Write-Verbose "New-CEFMessage: Param $i is a member of param set 'CEFExtensionFields'"
                     If (($MyInvocation.MyCommand.Parameters.Item($i)).ParameterType -eq [CEF_Ext_Device_Direction]) {
+                        Write-Verbose "New-CEFMessage: Adding the value for $i as an [int] to the CEF extension"
                         $CEFExtension += (((Get-Variable $i).Name), ((Get-Variable $i).Value -as [int]) -join '=') + ' '
                     }
-
-                    # Special handling of params of type 'CEF_Ext_Event_Type'
                     ElseIf (($MyInvocation.MyCommand.Parameters.Item($i)).ParameterType -eq [CEF_Ext_Event_Type]) {
+                        Write-Verbose "New-CEFMessage: Adding the value for $i as an [int] to the CEF extension"
                         $CEFExtension += (((Get-Variable $i).Name), ((Get-Variable $i).Value -as [int]) -join '=') + ' '
                     }
-
-                    # Default handling of CEF extension fields
                     Else {
+                        Write-Verbose "New-CEFMessage: Adding the value for $i to the CEF extension"
                         $CEFExtension += (((Get-Variable $i).Name), ((Get-Variable $i).Value) -join '=') + ' '
                     }
                 }
             }
         }
 
-        # Add raw, non-standard CEF extension fields directly (this param is not a member of the 'CEFExtensionFields' paramset on purpose, we handle it uniquely because it contains both key names and values, e.g.- "cefkeyname=value")
+        Write-Verbose "New-CEFMessage: Add raw, non-standard CEF extension fields directly (this param is not a member of the 'CEFExtensionFields' paramset on purpose, we handle it uniquely because it contains both key names and values, e.g.- 'cefkeyname=value')"
         If ($CustomExtensionRawString) {
             $CEFExtension += $CustomExtensionRawString
             Write-Verbose "New-CEFMessage: CEF custom extension fields being used: $CEFExtension"
         }
 
-        # Trim trailing space from CEF extension, if there are any
+        Write-Verbose "New-CEFMessage: Trim trailing space from CEF extension, if there are any"
         $CEFExtension = $CEFExtension.ToString().TrimEnd(' ')
 
         Write-Verbose "New-CEFMessage: CEF extension being used: $CEFExtension"
@@ -1076,9 +1074,11 @@ function New-CEFMessage {
         [String]$CEFHeader = "$CEFVersion|$DeviceVendor|$DeviceProduct|$DeviceVersion|$DeviceEventClassId|$Name|$Severity|"
 
         If ($CEFExtension -ne '') {
+            Write-Verbose "New-CEFMessage: Assemble CEF header and extension into CEF message"
             $CEFMessage = '{0}{1}' -f $CEFHeader, $CEFExtension
         }
         Else {
+            Write-Verbose "New-CEFMessage: No CEF extensions were used, CEF header only will be the CEF message"
             $CEFMessage = $CEFHeader
         }
 
@@ -1088,7 +1088,5 @@ function New-CEFMessage {
     End {}
 }
 
-# Export only the functions using PowerShell standard verb-noun naming.
 # Be sure to list each exported functions in the FunctionsToExport field of the module manifest file.
-# This improves performance of command discovery in PowerShell.
 Export-ModuleMember -Function New-CEFMessage
