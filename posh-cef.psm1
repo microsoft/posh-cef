@@ -25,7 +25,7 @@ function ConvertTo-CEFTimestamp
         [datetime]
         $DateTime,
     
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory=$false, 
                     ValueFromPipeline=$false,
                     ValueFromPipelineByPropertyName=$true,  
                     Position=1)]
