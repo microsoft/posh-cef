@@ -11,6 +11,52 @@ enum CEF_Ext_Event_Type {
     Action
 }
 
+function ConvertTo-CEFTimestamp
+{
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param
+    (
+        [Parameter(Mandatory=$true, 
+                    ValueFromPipeline=$true,
+                    ValueFromPipelineByPropertyName=$true,  
+                    Position=0)]
+        [ValidateNotNullOrEmpty()]
+        [datetime]
+        $DateTime,
+    
+        [Parameter(Mandatory=$true, 
+                    ValueFromPipeline=$false,
+                    ValueFromPipelineByPropertyName=$true,  
+                    Position=1)]
+        [ValidateSet('EpochMilliseconds','MMM dd yyyy HH:mm:ss.SSS','MMM dd yyyy HH:mm:ss','MMM dd yyyy HH:mm:ss.SSS zzz','MMM dd yyyy HH:mm:ss zzz')]
+        [string]
+        $Format='MMM dd yyyy HH:mm:ss.SSS'
+    )
+    Begin {}
+    
+    Process {
+        $Milliseconds = ($DateTime.Millisecond).ToString("000")
+
+        $Using = $Format
+
+        If ($Using -eq 'EpochMilliseconds') {
+            $CEFTime = ([int]($DateTime | Get-Date -UFormat %s) * 1000).ToString().TrimEnd('000') + $Milliseconds
+            }
+        Else {
+            If ($Format -cmatch '.SSS') {
+                $CEFTime = $DateTime | Get-Date -Format ($Format -replace '.SSS',".$Milliseconds")
+                }   
+            Else {
+                $CEFTime = [System.TimeZoneInfo]::ConvertTimeToUtc(($DateTime)) | Get-Date -Format $Format
+                }
+            }
+        $CEFTime
+        }
+
+    End {}
+}
+   
 function Format-MacAddress {
     [CmdletBinding()]
     [OutputType([string])]
@@ -1090,3 +1136,4 @@ function New-CEFMessage {
 
 # Be sure to list each exported functions in the FunctionsToExport field of the module manifest file.
 Export-ModuleMember -Function New-CEFMessage
+Export-ModuleMember -Function ConvertTo-CEFTimestamp

@@ -9,6 +9,9 @@ Describe 'Module Manifest Tests' {
     }
 }
 
+
+
+<#
 $ExpectedResult = 'CEF:0|Contoso|MyPowershellScript|1.0|Alert|Something bad was detected.|10|externalId=12345 src=192.168.1.1 deviceDirection=1 act=Blocked spriv=Administrator type=0 in=6213467 dmac=01:23:45:67:89:AF cfp1=3.141593 key=value'
 
 $TestCollection = @()
