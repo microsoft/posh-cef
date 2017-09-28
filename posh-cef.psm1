@@ -1128,7 +1128,7 @@ function New-CEFMessage {
             $CEFMessage = $CEFHeader
         }
 
-        Write-Output $CEFMessage
+        $CEFMessage
     }
 
     End {}
