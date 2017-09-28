@@ -17,24 +17,24 @@ function ConvertTo-CEFTimestamp
     [OutputType([String])]
     Param
     (
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory=$true,
                     ValueFromPipeline=$true,
-                    ValueFromPipelineByPropertyName=$true,  
+                    ValueFromPipelineByPropertyName=$true,
                     Position=0)]
         [ValidateNotNullOrEmpty()]
         [datetime]
         $DateTime,
-    
-        [Parameter(Mandatory=$false, 
+
+        [Parameter(Mandatory=$false,
                     ValueFromPipeline=$false,
-                    ValueFromPipelineByPropertyName=$true,  
+                    ValueFromPipelineByPropertyName=$true,
                     Position=1)]
         [ValidateSet('EpochMilliseconds','MMM dd yyyy HH:mm:ss.SSS','MMM dd yyyy HH:mm:ss','MMM dd yyyy HH:mm:ss.SSS zzz','MMM dd yyyy HH:mm:ss zzz')]
         [string]
         $Format='MMM dd yyyy HH:mm:ss.SSS'
     )
     Begin {}
-    
+
     Process {
         $Milliseconds = ($DateTime.Millisecond).ToString("000")
 
@@ -45,8 +45,8 @@ function ConvertTo-CEFTimestamp
             }
         Else {
             If ($Format -cmatch '.SSS') {
-                $CEFTime = $DateTime | Get-Date -Format ($Format -replace '.SSS',".$Milliseconds")
-                }   
+                $CEFTime = $DateTime | Get-Date -Format ($Format.Replace('.SSS',".$Milliseconds"))
+                }
             Else {
                 $CEFTime = [System.TimeZoneInfo]::ConvertTimeToUtc(($DateTime)) | Get-Date -Format $Format
                 }
@@ -56,7 +56,7 @@ function ConvertTo-CEFTimestamp
 
     End {}
 }
-   
+
 function Format-MacAddress {
     [CmdletBinding()]
     [OutputType([string])]
@@ -68,7 +68,7 @@ function Format-MacAddress {
             Position = 0)]
         [ValidateNotNullOrEmpty()]
         [ValidateLength(0, 17)]
-        [ValidateScript( {$_ -replace (':', '') -replace ('-', '') -replace (' ', '') -match {^[A-Fa-f0-9]{12}$}})]
+        [ValidateScript( {$_.Replace(':', '').Replace('-', '').Replace(' ', '') -match {^[A-Fa-f0-9]{12}$}})]
         [Alias("MacAddress", "PhysicalAddress")]
         [string]
         $Address,
@@ -100,7 +100,7 @@ function Format-MacAddress {
             Write-Verbose "Format-MacAddress: Lower case was enforced: $Address"
         }
 
-        $Address = $Address -replace (':', '') -replace ('-', '') -replace (' ', '')
+        $Address = $Address.Replace(':', '').Replace('-', '').Replace(' ', '')
         Write-Verbose "Format-MacAddress: Colon (:), hyphen (-), and space ( ) separators were removed: $Address"
 
         $Address = @(($Address[0, 1] -join ''), ($Address[2, 3] -join ''), ($Address[4, 5] -join ''), ($Address[6, 7] -join ''), ($Address[8, 9] -join ''), ($Address[10, 11] -join '')) -join $Separator
@@ -259,7 +259,7 @@ function New-CEFMessage {
         [Parameter(ParameterSetName = 'CEFExtensionFields', ValueFromPipelineByPropertyName=$true, HelpMessage = 'Identifies the destination MAC address to which an event refers. The format is six pairs of hexadecimal numbers which can be separated by colons, hyphens, spaces, or not separated. (type=string)')]
         [ValidateNotNullOrEmpty()]
         [ValidateLength(0, 17)]
-        [ValidateScript( {$_ -replace (':', '') -replace ('-', '') -replace (' ', '') -match {^[A-Fa-f0-9]{12}$}})]
+        [ValidateScript( {$_.Replace(':', '').Replace('-', '').Replace(' ', '') -match {^[A-Fa-f0-9]{12}$}})]
         [Alias("destinationMacAddress")]
         [string]
         $dmac,
@@ -267,7 +267,7 @@ function New-CEFMessage {
         [Parameter(ParameterSetName = 'CEFExtensionFields', ValueFromPipelineByPropertyName=$true, HelpMessage = 'Identifies the device MAC address to which an event refers. The format is six pairs of hexadecimal numbers which can be separated by colons, hyphens, spaces, or not separated. (type=string)')]
         [ValidateNotNullOrEmpty()]
         [ValidateLength(0, 17)]
-        [ValidateScript( {$_ -replace (':', '') -replace ('-', '') -replace (' ', '') -match {^[A-Fa-f0-9]{12}$}})]
+        [ValidateScript( {$_.Replace(':', '').Replace('-', '').Replace(' ', '') -match {^[A-Fa-f0-9]{12}$}})]
         [Alias("deviceMacAddress")]
         [string]
         $dvcmac,
@@ -275,7 +275,7 @@ function New-CEFMessage {
         [Parameter(ParameterSetName = 'CEFExtensionFields', ValueFromPipelineByPropertyName=$true, HelpMessage = 'Identifies the source MAC address to which an event refers. The format is six pairs of hexadecimal numbers which can be separated by colons, hyphens, spaces, or not separated. (type=string)')]
         [ValidateNotNullOrEmpty()]
         [ValidateLength(0, 17)]
-        [ValidateScript( {$_ -replace (':', '') -replace ('-', '') -replace (' ', '') -match {^[A-Fa-f0-9]{12}$}})]
+        [ValidateScript( {$_.Replace(':', '').Replace('-', '').Replace(' ', '') -match {^[A-Fa-f0-9]{12}$}})]
         [Alias("sourceMacAddress")]
         [string]
         $smac,
